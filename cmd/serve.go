@@ -31,15 +31,22 @@ func main() {
 
 	userHandler := handlers.UserHandler{}
 	authHandler := handlers.AuthHandler{}
-	err := db.DB.AutoMigrate(&models.User{})
+	tournamentHandler := handlers.TournamentHandler{}
+	factionHandler := handlers.FactionHandler{}
+	err := db.DB.AutoMigrate(&models.User{}, &models.Tournament{}, &models.Player{}, &models.Pairing{})
 	if err != nil {
 		panic(err)
 	}
 
 	r.GET("/users/:id", userHandler.Get)
 	r.GET("/users", userHandler.List)
-	r.POST("/users", userHandler.Post)
+	r.POST("/users", userHandler.Create)
 	r.POST("/login", authHandler.Login)
+	r.GET("/tournaments/:id", tournamentHandler.Get)
+	r.GET("/tournaments", tournamentHandler.List)
+	r.GET("/factions", factionHandler.List)
+	r.GET("/factions/:id", factionHandler.Get)
+
 	r.StaticFile("/", "./web/index.html")
 	r.StaticFile("/login", "./web/login.html")
 
@@ -47,6 +54,20 @@ func main() {
 	loginRequired.Use(middleware.AuthRequired)
 	loginRequired.GET("/logout", authHandler.Logout)
 	loginRequired.GET("/whoami", authHandler.WhoAmI)
+	loginRequired.POST("/tournaments", tournamentHandler.Create)
+	loginRequired.StaticFile("/tournament", "./web/tournament.html")
+
+	organizerOnly := r.Group("/")
+	organizerOnly.Use(middleware.AuthRequired)
+	organizerOnly.Use(middleware.OrganizerOnly)
+	organizerOnly.POST("/tournaments/:id/players", tournamentHandler.AddPlayer)
+
+	adminOnly := r.Group("/admin")
+	adminOnly.Use(middleware.AuthRequired)
+	adminOnly.Use(middleware.AdminOnly)
+	adminOnly.POST("/factions", factionHandler.Create)
+	adminOnly.StaticFile("/faction", "./web/faction.html")
+
 	err = r.Run()
 	if err != nil {
 		panic(err)

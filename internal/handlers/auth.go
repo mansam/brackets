@@ -23,13 +23,13 @@ func (r *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	valid, err := models.CheckPassword(name, password)
+	userid, valid, err := models.CheckPassword(name, password)
 	if !valid || err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication failed"})
 		return
 	}
 
-	session.Set(CookieKeyUser, name)
+	session.Set(CookieKeyUser, userid)
 	err = session.Save()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save session."})

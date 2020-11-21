@@ -44,19 +44,19 @@ func NewUser(name, email, password string) (*User, error) {
 	return &u, nil
 }
 
-func CheckPassword(name, password string) (bool, error) {
+func CheckPassword(name, password string) (uint, bool, error) {
 	u := User{}
 	result := db.DB.Where("name = ?", name).First(&u)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return false, nil
+			return 0, false, nil
 		}
-		return false, result.Error
+		return 0, false, result.Error
 	}
 
 	err := bcrypt.CompareHashAndPassword(u.Password, []byte(password))
 	if err != nil {
-		return false, nil
+		return 0, false, nil
 	}
-	return true, nil
+	return u.ID, true, nil
 }

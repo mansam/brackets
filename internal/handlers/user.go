@@ -12,6 +12,12 @@ import (
 
 type UserHandler struct{}
 
+type User struct {
+	Name     string `form:"name" json:"name" binding:"required,alphanumunicode,min=3"`
+	Email    string `form:"email" json:"email" binding:"required,email"`
+	Password string `form:"password" json:"password" binding:"required,min=8"`
+}
+
 func (r *UserHandler) List(c *gin.Context) {
 	var users []models.User
 	result := db.DB.Find(&users)
@@ -31,18 +37,22 @@ func (r *UserHandler) List(c *gin.Context) {
 	})
 }
 
-func (r *UserHandler) Post(c *gin.Context) {
-	name := c.PostForm("name")
-	email := c.PostForm("email")
-	password := c.PostForm("password")
+func (r *UserHandler) Create(c *gin.Context) {
+	var form User
+
+	err := c.ShouldBind(&form)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
 	// Validate form input
-	if strings.Trim(name, " ") == "" || strings.Trim(password, " ") == "" {
+	if strings.Trim(form.Name, " ") == "" || strings.Trim(form.Password, " ") == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Parameters can't be empty"})
 		return
 	}
 
-	result := db.DB.First(&models.User{}, "name = ?", name)
+	result := db.DB.First(&models.User{}, "name = ?", form.Name)
 	if result.Error != nil && !errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "internal server error",
@@ -57,7 +67,7 @@ func (r *UserHandler) Post(c *gin.Context) {
 		return
 	}
 
-	u, err := models.NewUser(name, email, password)
+	u, err := models.NewUser(form.Name, form.Email, form.Password)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "internal server error",
