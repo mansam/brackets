@@ -13,13 +13,13 @@ import (
 
 type TournamentHandler struct{}
 
-type Tournament struct {
+type TournamentForm struct {
 	Name       string `form:"name" json:"name" binding:"required,min=4"`
 	MaxRounds  int    `form:"maxRounds" json:"maxRounds" binding:"required,min=3"`
 	MaxPlayers int    `form:"maxPlayers" json:"maxPlayers" binding:"required,min=4"`
 }
 
-type Player struct {
+type PlayerForm struct {
 	Name         string `form:"name" json:"name" binding:"required,alphanumunicode,min=3"`
 	Email        string `form:"email" json:"email" binding:"required,email"`
 	FactionID    int    `form:"factionid" json:"factionid" binding:"required"`
@@ -66,7 +66,7 @@ func (r *TournamentHandler) Get(c *gin.Context) {
 }
 
 func (r *TournamentHandler) Create(c *gin.Context) {
-	var form Tournament
+	var form TournamentForm
 
 	err := c.ShouldBind(&form)
 	if err != nil {
@@ -115,7 +115,7 @@ func (r *TournamentHandler) Create(c *gin.Context) {
 }
 
 func (r *TournamentHandler) AddPlayer(c *gin.Context) {
-	var form Player
+	var form PlayerForm
 	tid, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

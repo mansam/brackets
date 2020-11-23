@@ -12,7 +12,7 @@ import (
 
 type UserHandler struct{}
 
-type User struct {
+type UserForm struct {
 	Name     string `form:"name" json:"name" binding:"required,alphanumunicode,min=3"`
 	Email    string `form:"email" json:"email" binding:"required,email"`
 	Password string `form:"password" json:"password" binding:"required,min=8"`
@@ -38,7 +38,7 @@ func (r *UserHandler) List(c *gin.Context) {
 }
 
 func (r *UserHandler) Create(c *gin.Context) {
-	var form User
+	var form UserForm
 
 	err := c.ShouldBind(&form)
 	if err != nil {

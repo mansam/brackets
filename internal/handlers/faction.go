@@ -12,7 +12,7 @@ import (
 
 type FactionHandler struct{}
 
-type Faction struct {
+type FactionForm struct {
 	Name string `form:"name" json:"name" binding:"required,min=1"`
 }
 
@@ -56,7 +56,7 @@ func (r *FactionHandler) Get(c *gin.Context) {
 }
 
 func (r *FactionHandler) Create(c *gin.Context) {
-	var form Faction
+	var form FactionForm
 
 	err := c.ShouldBind(&form)
 	if err != nil {
